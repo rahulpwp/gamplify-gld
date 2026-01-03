@@ -43,6 +43,7 @@ define( 'GLD_EVENTS_TABLE', $wpdb->prefix . 'gld_events' );
 define( 'GLD_REPORTS_TABLE', $wpdb->prefix . 'gld_reports' );
 define( 'GLD_SESSIONS_TABLE', $wpdb->prefix . 'gld_sessions' );
 define( 'GLD_MEMBER_KPI_TABLE', $wpdb->prefix . 'gld_member_kpi' );
+define( 'GLD_MEMBER_CHARTS_TABLE', $wpdb->prefix . 'gld_member_charts' );
 
 /**
  * Plugin activation handler

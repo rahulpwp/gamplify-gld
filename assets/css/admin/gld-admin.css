@@ -284,7 +284,7 @@
     /* content: " *"; color: #ef4444; */
 }
 
-.gld-select {
+.gld-select, .gld-input {
     width: 100%;
     max-width: 100% !important;
     height: 42px !important;
@@ -393,3 +393,58 @@
         margin: 0 auto;
     }
 }
+/**
+ * Select2 Custom Styling for WordPress Admin
+ * Scoped to our container to prevent global conflicts
+ */
+.gld-form-group .select2-container .select2-selection--single {
+    height: 40px !important;
+    border-color: #8c8f94 !important;
+    border-radius: 4px !important;
+    padding: 5px 0;
+}
+
+.gld-form-group .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px !important;
+    color: #2c3338 !important;
+}
+
+.gld-form-group .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 38px !important;
+}
+
+.gld-form-group .select2-container--default .select2-selection--multiple {
+    border-color: #8c8f94 !important;
+    border-radius: 4px !important;
+    min-height: 40px !important;
+}
+
+.gld-form-group .select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #2271b1 !important;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.gld-form-group .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #f0f0f1;
+    border: 1px solid #c3c4c7;
+    border-radius: 2px;
+    padding: 4px 8px;
+    margin-top: 6px;
+}
+
+.gld-form-group .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #787c82;
+    margin-right: 5px;
+}
+
+.gld-form-group .select2-container {
+    margin-bottom: 5px;
+    width: 100% !important;
+}
+
+/* Base select styling backup */
+.gld-select {
+    width: 100%;
+    max-width: 100%;
+}
+

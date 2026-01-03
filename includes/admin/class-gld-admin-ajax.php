@@ -38,6 +38,10 @@ class GLD_Admin_Ajax {
 		add_action( 'wp_ajax_gld_save_member_kpi', array( $this, 'save_member_kpi' ) );
 		add_action( 'wp_ajax_gld_get_member_kpis', array( $this, 'get_member_kpis' ) );
 		add_action( 'wp_ajax_gld_delete_member_kpi', array( $this, 'delete_member_kpi' ) );
+		
+		add_action( 'wp_ajax_gld_save_chart', array( $this, 'save_chart' ) );
+		add_action( 'wp_ajax_gld_get_charts', array( $this, 'get_charts' ) );
+		add_action( 'wp_ajax_gld_delete_chart', array( $this, 'delete_chart' ) );
 	}
 	
 	/**
@@ -309,6 +313,55 @@ class GLD_Admin_Ajax {
 		$total_items = (int) $wpdb->get_var( "SELECT COUNT(*) FROM " . GLD_MEMBER_KPI_TABLE );
 		$total_pages = ceil( $total_items / $limit );
 		
+		// Enrich items with course/product names
+		if ( ! empty( $items ) ) {
+			foreach ( $items as $item ) {
+				// Metric Type Name Resolution (if it's a product ID)
+				if ( is_numeric( $item->metric_type ) && class_exists( 'WooCommerce' ) ) {
+					$product = wc_get_product( $item->metric_type );
+					if ( $product ) {
+						// Optionally update title display or just leave title as stored. 
+						// The title is stored as text, so it should be fine.
+						// But metric_type column might need care if used for logic.
+					}
+				}
+
+				// Course Name Resolution
+				$item->course_display_name = $item->filter_by_course; // Default to value
+				
+				if ( ! empty( $item->filter_by_course ) && $item->filter_by_course != '0' ) {
+					// Check for multiple courses (comma separated)
+					if ( strpos( $item->filter_by_course, ',' ) !== false ) {
+						$course_ids = explode( ',', $item->filter_by_course );
+						$course_names = array();
+						
+						foreach ( $course_ids as $course_id ) {
+							if ( is_numeric( $course_id ) ) {
+								$course_post = get_post( trim( $course_id ) );
+								if ( $course_post ) {
+									$course_names[] = $course_post->post_title;
+								} else {
+									$course_names[] = sprintf( __( '#%d', 'gamplify-gld' ), $course_id );
+								}
+							}
+						}
+						
+						if ( ! empty( $course_names ) ) {
+							$item->course_display_name = implode( ', ', $course_names );
+						}
+					} elseif ( is_numeric( $item->filter_by_course ) ) {
+						// Single course
+						$course_post = get_post( $item->filter_by_course );
+						if ( $course_post ) {
+							$item->course_display_name = $course_post->post_title;
+						} else {
+							$item->course_display_name = sprintf( __( 'Course #%d (Deleted)', 'gamplify-gld' ), $item->filter_by_course );
+						}
+					}
+				}
+			}
+		}
+		
 		wp_send_json_success( array(
 			'items' => $items,
 			'pagination' => array(
@@ -346,6 +399,162 @@ class GLD_Admin_Ajax {
 			wp_send_json_success( array( 'message' => __( 'Member KPI deleted successfully', 'gamplify-gld' ) ) );
 		} else {
 			wp_send_json_error( array( 'message' => __( 'Failed to delete Member KPI', 'gamplify-gld' ) ) );
+		}
+	}
+
+	/**
+	 * Save Member Chart
+	 *
+	 * @return void
+	 */
+	public function save_chart() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+		}
+		
+		$title = isset( $_POST['title'] ) ? sanitize_text_field( $_POST['title'] ) : '';
+		$metric_type = isset( $_POST['chart_type'] ) ? sanitize_text_field( $_POST['chart_type'] ) : '';
+		$filter_by_product = isset( $_POST['filter_by_product'] ) ? sanitize_text_field( $_POST['filter_by_product'] ) : '';
+		$chart_height = isset( $_POST['chart_height'] ) ? absint( $_POST['chart_height'] ) : 300;
+		
+		if ( empty( $metric_type ) ) {
+			wp_send_json_error( array( 'message' => __( 'Chart type is required', 'gamplify-gld' ) ) );
+		}
+		
+		global $wpdb;
+		
+		$data = array(
+			'title'            => $title,
+			'metric_type'      => $metric_type,
+			'filter_by_product' => $filter_by_product,
+			'chart_height'    => $chart_height,
+		);
+		
+		$format = array( '%s', '%s', '%s', '%d' );
+		
+		$result = $wpdb->insert( GLD_MEMBER_CHARTS_TABLE, $data, $format );
+		
+		if ( $result ) {
+			wp_send_json_success( array(
+				'message' => __( 'Chart shortcode saved successfully', 'gamplify-gld' ),
+				'id'      => $wpdb->insert_id,
+				'data'    => $data
+			) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to save Chart shortcode', 'gamplify-gld' ) ) );
+		}
+	}
+
+	/**
+	 * Get Member Charts with pagination
+	 *
+	 * @return void
+	 */
+	public function get_charts() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+		}
+		
+		global $wpdb;
+		
+		$page = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+		$limit = 5;
+		$offset = ( $page - 1 ) * $limit;
+		
+		// Get items
+		$items = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM " . GLD_MEMBER_CHARTS_TABLE . " 
+				ORDER BY created DESC 
+				LIMIT %d OFFSET %d",
+				$limit,
+				$offset
+			)
+		);
+		
+		// Enrich items with product names
+		if ( ! empty( $items ) && class_exists( 'WooCommerce' ) ) {
+			foreach ( $items as $item ) {
+				$item->product_name = $item->filter_by_product; // Default
+				
+				if ( ! empty( $item->filter_by_product ) ) {
+					// Check for multiple products
+					if ( strpos( $item->filter_by_product, ',' ) !== false ) {
+						$product_ids = explode( ',', $item->filter_by_product );
+						$product_names = array();
+						
+						foreach ( $product_ids as $pid ) {
+							if ( is_numeric( $pid ) ) {
+								$product = wc_get_product( trim( $pid ) );
+								if ( $product ) {
+									$product_names[] = $product->get_name();
+								} else {
+									$product_names[] = sprintf( __( '#%d', 'gamplify-gld' ), $pid );
+								}
+							}
+						}
+						
+						if ( ! empty( $product_names ) ) {
+							$item->product_name = implode( ', ', $product_names );
+						}
+					} elseif ( is_numeric( $item->filter_by_product ) ) {
+						// Single product
+						$product = wc_get_product( $item->filter_by_product );
+						if ( $product ) {
+							$item->product_name = $product->get_name();
+						} else {
+							$item->product_name = sprintf( __( 'Product #%d (Deleted)', 'gamplify-gld' ), $item->filter_by_product );
+						}
+					}
+				}
+			}
+		}
+		
+		// Get total count
+		$total_items = (int) $wpdb->get_var( "SELECT COUNT(*) FROM " . GLD_MEMBER_CHARTS_TABLE );
+		$total_pages = ceil( $total_items / $limit );
+		
+		wp_send_json_success( array(
+			'items' => $items,
+			'pagination' => array(
+				'current_page' => $page,
+				'total_pages'  => $total_pages,
+				'total_items'  => $total_items,
+				'limit'        => $limit
+			)
+		) );
+	}
+
+	/**
+	 * Delete Member Chart
+	 *
+	 * @return void
+	 */
+	public function delete_chart() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+		}
+		
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+		
+		if ( ! $id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid ID', 'gamplify-gld' ) ) );
+		}
+		
+		global $wpdb;
+		
+		$result = $wpdb->delete( GLD_MEMBER_CHARTS_TABLE, array( 'id' => $id ), array( '%d' ) );
+		
+		if ( $result ) {
+			wp_send_json_success( array( 'message' => __( 'Chart shortcode deleted successfully', 'gamplify-gld' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to delete Chart shortcode', 'gamplify-gld' ) ) );
 		}
 	}
 }
