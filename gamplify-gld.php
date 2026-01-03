@@ -135,6 +135,12 @@ foreach ( $public_files as $file ) {
 
 // Load shortcodes
 require_once GLD_DIR . '/includes/gld-shortcodes.php';
+require_once GLD_DIR . '/includes/public/shortcodes/class-gld-membership-shortcode.php';
+require_once GLD_DIR . '/includes/public/shortcodes/class-gld-chart-shortcode.php';
+
+// Initialize Membership Shortcode
+new GLD_Membership_Shortcode();
+new GLD_Chart_Shortcode();
 
 /**
  * Initialize plugin

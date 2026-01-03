@@ -27,7 +27,7 @@ $current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'me
 			</div>
 			<h1 class="gld-page-title">
 				<span class="gld-logo">GAMPLIFY</span>
-				<?php esc_html_e( 'GLD Analytics - Admin Panel', 'gamplify-gld' ); ?>
+				<?php esc_html_e( 'Platform Reports', 'gamplify-gld' ); ?>
 			</h1>
 			<p class="gld-subtitle"><?php esc_html_e( 'Configure dashboard sections and generate shortcodes', 'gamplify-gld' ); ?></p>
 		</div>

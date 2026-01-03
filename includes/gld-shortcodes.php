@@ -55,81 +55,6 @@ function gld_stats_shortcode( $atts ) {
 }
 add_shortcode( 'gld_stats', 'gld_stats_shortcode' );
 
-/**
- * Display chart shortcode
- *
- * Usage: [gld_chart type="bar" event_type="page_view" period="last_7_days"]
- *
- * @param array $atts Shortcode attributes
- * @return string
- */
-function gld_chart_shortcode( $atts ) {
-	$atts = shortcode_atts(
-		array(
-			'type'       => 'bar',
-			'event_type' => 'page_view',
-			'period'     => 'last_7_days',
-			'height'     => '300',
-		),
-		$atts,
-		'gld_chart'
-	);
-	
-	$chart_id = 'gld-chart-' . wp_generate_password( 8, false );
-	
-	wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js', array(), '4.4.0', true );
-	
-	ob_start();
-	?>
-	<div class="gld-chart-container">
-		<canvas id="<?php echo esc_attr( $chart_id ); ?>" height="<?php echo esc_attr( $atts['height'] ); ?>"></canvas>
-	</div>
-	<script>
-	jQuery(document).ready(function($) {
-		var ctx = document.getElementById('<?php echo esc_js( $chart_id ); ?>').getContext('2d');
-		// Chart data would be loaded via AJAX
-		var chart = new Chart(ctx, {
-			type: '<?php echo esc_js( $atts['type'] ); ?>',
-			data: {
-				labels: [],
-				datasets: [{
-					label: '<?php echo esc_js( $atts['event_type'] ); ?>',
-					data: [],
-					backgroundColor: 'rgba(54, 162, 235, 0.2)',
-					borderColor: 'rgba(54, 162, 235, 1)',
-					borderWidth: 1
-				}]
-			},
-			options: {
-				responsive: true,
-				maintainAspectRatio: false
-			}
-		});
-		
-		// Load chart data via AJAX
-		$.ajax({
-			url: gld_public.ajax_url,
-			type: 'POST',
-			data: {
-				action: 'gld_get_chart_data',
-				nonce: gld_public.nonce,
-				event_type: '<?php echo esc_js( $atts['event_type'] ); ?>',
-				period: '<?php echo esc_js( $atts['period'] ); ?>'
-			},
-			success: function(response) {
-				if (response.success) {
-					chart.data.labels = response.data.labels;
-					chart.data.datasets[0].data = response.data.values;
-					chart.update();
-				}
-			}
-		});
-	});
-	</script>
-	<?php
-	return ob_get_clean();
-}
-add_shortcode( 'gld_chart', 'gld_chart_shortcode' );
 
 /**
  * Display user dashboard shortcode
@@ -184,3 +109,4 @@ function gld_leaderboard_shortcode( $atts ) {
 	return ob_get_clean();
 }
 add_shortcode( 'gld_leaderboard', 'gld_leaderboard_shortcode' );
+
