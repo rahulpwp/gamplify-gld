@@ -45,11 +45,9 @@ if ( ! defined( 'WPINC' ) ) {
 					<label for="metric-type"><?php esc_html_e( 'Metric Type', 'gamplify-gld' ); ?> *</label>
 					<select id="metric-type" class="gld-select">
 						<option value=""><?php esc_html_e( 'Select metric type', 'gamplify-gld' ); ?></option>
-						<option value="total_members"><?php esc_html_e( 'Total Members', 'gamplify-gld' ); ?></option>
-						<option value="active_members"><?php esc_html_e( 'Active Members', 'gamplify-gld' ); ?></option>
-						<option value="new_members"><?php esc_html_e( 'New Members (This Month)', 'gamplify-gld' ); ?></option>
-						<option value="member_growth"><?php esc_html_e( 'Member Growth Rate', 'gamplify-gld' ); ?></option>
-						<option value="engagement_score"><?php esc_html_e( 'Engagement Score', 'gamplify-gld' ); ?></option>
+						<option value="Membership Health Score"><?php esc_html_e( 'Membership Health Score', 'gamplify-gld' ); ?></option>
+						<option value="Annual Members Count"><?php esc_html_e( 'Annual Members Count', 'gamplify-gld' ); ?></option>
+						<option value="Monthly Members Count"><?php esc_html_e( 'Monthly Members Count', 'gamplify-gld' ); ?></option>
 					</select>
 				</div>
 
@@ -58,6 +56,8 @@ if ( ! defined( 'WPINC' ) ) {
 					<select id="filter-course" class="gld-select">
 						<option value=""><?php esc_html_e( 'Select filter by course', 'gamplify-gld' ); ?></option>
 						<option value="all"><?php esc_html_e( 'All Courses', 'gamplify-gld' ); ?></option>
+						<option value="Annual Members"><?php esc_html_e( 'Annual Members', 'gamplify-gld' ); ?></option>
+						<option value="Monthly Members"><?php esc_html_e( 'Monthly Members', 'gamplify-gld' ); ?></option>
 						<!-- Dynamic courses will be loaded here -->
 					</select>
 				</div>
@@ -66,10 +66,8 @@ if ( ! defined( 'WPINC' ) ) {
 					<label for="chart-version"><?php esc_html_e( 'Include Chart Version', 'gamplify-gld' ); ?></label>
 					<select id="chart-version" class="gld-select">
 						<option value=""><?php esc_html_e( 'Select include chart version', 'gamplify-gld' ); ?></option>
-						<option value="no_chart"><?php esc_html_e( 'No Chart', 'gamplify-gld' ); ?></option>
-						<option value="line_chart"><?php esc_html_e( 'Line Chart', 'gamplify-gld' ); ?></option>
-						<option value="bar_chart"><?php esc_html_e( 'Bar Chart', 'gamplify-gld' ); ?></option>
-						<option value="pie_chart"><?php esc_html_e( 'Pie Chart', 'gamplify-gld' ); ?></option>
+						<option value="no"><?php esc_html_e( 'No', 'gamplify-gld' ); ?></option>
+						<option value="yes"><?php esc_html_e( 'Yes', 'gamplify-gld' ); ?></option>
 					</select>
 				</div>
 			</div>
@@ -83,7 +81,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 		<!-- Generated Shortcodes Table -->
 		<div class="gld-section">
-			<h3 class="gld-section-title"><?php esc_html_e( 'Generated Shortcodes', 'gamplify-gld' ); ?></h3>
+			<h3 class="gld-section-title"><?php esc_html_e( 'Generated Metric Shortcodes', 'gamplify-gld' ); ?></h3>
 			
 			<table class="wp-list-table widefat fixed striped gld-shortcodes-table">
 				<thead>
@@ -104,6 +102,7 @@ if ( ! defined( 'WPINC' ) ) {
 					</tr>
 				</tbody>
 			</table>
+			<div id="gld-kpi-pagination" class="gld-pagination" style="margin-top: 15px; text-align: right;"></div>
 		</div>
 	</div>
 
@@ -125,14 +124,21 @@ if ( ! defined( 'WPINC' ) ) {
 				</div>
 
 				<div class="gld-form-group">
-					<label for="time-period"><?php esc_html_e( 'Time Period', 'gamplify-gld' ); ?></label>
-					<select id="time-period" class="gld-select">
-						<option value="7days"><?php esc_html_e( 'Last 7 Days', 'gamplify-gld' ); ?></option>
-						<option value="30days"><?php esc_html_e( 'Last 30 Days', 'gamplify-gld' ); ?></option>
-						<option value="90days"><?php esc_html_e( 'Last 90 Days', 'gamplify-gld' ); ?></option>
-						<option value="1year"><?php esc_html_e( 'Last Year', 'gamplify-gld' ); ?></option>
+					<label for="filter-course"><?php esc_html_e( 'Filter by Course', 'gamplify-gld' ); ?></label>
+					<select id="filter-course" class="gld-select">
+						<option value=""><?php esc_html_e( 'Select filter by course', 'gamplify-gld' ); ?></option>
+						<option value="all"><?php esc_html_e( 'All Courses', 'gamplify-gld' ); ?></option>
+						<option value="Annual Members"><?php esc_html_e( 'Annual Members', 'gamplify-gld' ); ?></option>
+						<option value="Monthly Members"><?php esc_html_e( 'Monthly Members', 'gamplify-gld' ); ?></option>
+						<!-- Dynamic courses will be loaded here -->
 					</select>
 				</div>
+
+				<div class="gld-form-group">
+					<label for="chart-height"><?php esc_html_e( 'Chart Height (px)', 'gamplify-gld' ); ?></label>
+					<input type="number" name="chart-height" class="chart-height" min="1" max="500" value="300">
+				</div>
+
 			</div>
 
 			<div class="gld-action-row">

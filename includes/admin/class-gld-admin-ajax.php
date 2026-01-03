@@ -35,6 +35,9 @@ class GLD_Admin_Ajax {
 		add_action( 'wp_ajax_gld_export_report', array( $this, 'export_report' ) );
 		add_action( 'wp_ajax_gld_save_report', array( $this, 'save_report' ) );
 		add_action( 'wp_ajax_gld_delete_report', array( $this, 'delete_report' ) );
+		add_action( 'wp_ajax_gld_save_member_kpi', array( $this, 'save_member_kpi' ) );
+		add_action( 'wp_ajax_gld_get_member_kpis', array( $this, 'get_member_kpis' ) );
+		add_action( 'wp_ajax_gld_delete_member_kpi', array( $this, 'delete_member_kpi' ) );
 	}
 	
 	/**
@@ -227,7 +230,126 @@ class GLD_Admin_Ajax {
 		
 		return $avg ? round( $avg / 60, 2 ) : 0; // Return in minutes
 	}
+
+	/**
+	 * Save Member KPI
+	 *
+	 * @return void
+	 */
+	public function save_member_kpi() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+		}
+		
+		$title = isset( $_POST['title'] ) ? sanitize_text_field( $_POST['title'] ) : '';
+		$metric_type = isset( $_POST['metric_type'] ) ? sanitize_text_field( $_POST['metric_type'] ) : '';
+		$filter_by_course = isset( $_POST['filter_by_course'] ) ? sanitize_text_field( $_POST['filter_by_course'] ) : '';
+		$include_chart_version = isset( $_POST['include_chart_version'] ) ? sanitize_text_field( $_POST['include_chart_version'] ) : '';
+		
+		if ( empty( $metric_type ) ) {
+			wp_send_json_error( array( 'message' => __( 'Metric type is required', 'gamplify-gld' ) ) );
+		}
+		
+		global $wpdb;
+		
+		$data = array(
+			'title'                 => $title,
+			'metric_type'           => $metric_type,
+			'filter_by_course'      => $filter_by_course,
+			'include_chart_version' => $include_chart_version,
+		);
+		
+		$format = array( '%s', '%s', '%s', '%s' );
+		
+		$result = $wpdb->insert( GLD_MEMBER_KPI_TABLE, $data, $format );
+		
+		if ( $result ) {
+			wp_send_json_success( array(
+				'message' => __( 'Member KPI saved successfully', 'gamplify-gld' ),
+				'id'      => $wpdb->insert_id,
+				'data'    => $data
+			) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to save Member KPI', 'gamplify-gld' ) ) );
+		}
+	}
+
+	/**
+	 * Get Member KPIs with pagination
+	 *
+	 * @return void
+	 */
+	public function get_member_kpis() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+		}
+		
+		global $wpdb;
+		
+		$page = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+		$limit = 5; // Temporary limit as requested
+		$offset = ( $page - 1 ) * $limit;
+		
+		// Get items
+		$items = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM " . GLD_MEMBER_KPI_TABLE . " 
+				ORDER BY created DESC 
+				LIMIT %d OFFSET %d",
+				$limit,
+				$offset
+			)
+		);
+		
+		// Get total count
+		$total_items = (int) $wpdb->get_var( "SELECT COUNT(*) FROM " . GLD_MEMBER_KPI_TABLE );
+		$total_pages = ceil( $total_items / $limit );
+		
+		wp_send_json_success( array(
+			'items' => $items,
+			'pagination' => array(
+				'current_page' => $page,
+				'total_pages'  => $total_pages,
+				'total_items'  => $total_items,
+				'limit'        => $limit
+			)
+		) );
+	}
+
+	/**
+	 * Delete Member KPI
+	 *
+	 * @return void
+	 */
+	public function delete_member_kpi() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+		}
+		
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+		
+		if ( ! $id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid ID', 'gamplify-gld' ) ) );
+		}
+		
+		global $wpdb;
+		
+		$result = $wpdb->delete( GLD_MEMBER_KPI_TABLE, array( 'id' => $id ), array( '%d' ) );
+		
+		if ( $result ) {
+			wp_send_json_success( array( 'message' => __( 'Member KPI deleted successfully', 'gamplify-gld' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to delete Member KPI', 'gamplify-gld' ) ) );
+		}
+	}
 }
+
 
 // Initialize
 new GLD_Admin_Ajax();
