@@ -1,0 +1,75 @@
+/* Public/Frontend Styles */
+.gld-stats-widget {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.gld-stats-widget .gld-stat-value {
+    font-size: 48px;
+    font-weight: bold;
+    color: #2271b1;
+    margin-bottom: 10px;
+}
+
+.gld-stats-widget .gld-stat-label {
+    font-size: 16px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.gld-chart-container {
+    margin: 20px 0;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.gld-user-dashboard {
+    padding: 20px;
+}
+
+.gld-user-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.gld-user-stat {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.gld-user-stat h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.gld-user-stat .gld-stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #2271b1;
+}
+
+.gld-leaderboard {
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.gld-leaderboard h3 {
+    margin-top: 0;
+}

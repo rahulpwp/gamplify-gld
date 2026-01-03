@@ -1,0 +1,9 @@
+/* Dashboard Specific Styles */
+.gld-dashboard .gld-stat-card {
+    transition: transform 0.2s ease;
+}
+
+.gld-dashboard .gld-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
