@@ -246,3 +246,73 @@ function gld_get_device_type( $user_agent = '' ) {
 	
 	return 'desktop';
 }
+
+/**
+ * Get active member count for specific products
+ *
+ * @param string|array $product_ids Product IDs (comma-separated or array)
+ * @return int Active count
+ */
+function gld_get_active_member_count( $product_ids ) {
+	if ( ! class_exists( 'WC_Subscriptions' ) ) {
+		return 0;
+	}
+
+	if ( is_string( $product_ids ) ) {
+		$product_ids = explode( ',', $product_ids );
+	}
+	
+	$product_ids = array_map( 'absint', (array) $product_ids );
+	$product_ids = array_filter( $product_ids ); // Remove empty
+	
+	if ( empty( $product_ids ) ) {
+		return 0;
+	}
+
+	// Query active subscriptions
+	// Note: wcs_get_subscriptions args are slightly different than get_posts
+	$args = array(
+		'subscription_status' => 'active',
+		'subscriptions_per_page' => -1,
+		'product_id' => $product_ids,
+		'return' => 'ids', // Performance: just get IDs
+	);
+	
+	$subscriptions = wcs_get_subscriptions( $args );
+	
+	return count( $subscriptions );
+}
+
+/**
+ * Get churned member count for specific products
+ *
+ * @param string|array $product_ids Product IDs (comma-separated or array)
+ * @return int Churned count
+ */
+function gld_get_churned_member_count( $product_ids ) {
+	if ( ! class_exists( 'WC_Subscriptions' ) ) {
+		return 0;
+	}
+
+	if ( is_string( $product_ids ) ) {
+		$product_ids = explode( ',', $product_ids );
+	}
+	
+	$product_ids = array_map( 'absint', (array) $product_ids );
+	$product_ids = array_filter( $product_ids );
+	
+	if ( empty( $product_ids ) ) {
+		return 0;
+	}
+
+	$args = array(
+		'subscription_status' => array( 'cancelled', 'expired', 'trash' ),
+		'subscriptions_per_page' => -1,
+		'product_id' => $product_ids,
+		'return' => 'ids',
+	);
+	
+	$subscriptions = wcs_get_subscriptions( $args );
+	
+	return count( $subscriptions );
+}

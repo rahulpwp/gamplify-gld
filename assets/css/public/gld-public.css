@@ -73,3 +73,113 @@
 .gld-leaderboard h3 {
     margin-top: 0;
 }
+
+/* KPI Card Styles */
+.gld-kpi-card {
+    background: #fff;
+    border: 1px solid #e1e4e8; /* Faint border */
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle shadow */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    max-width: 300px; /* Optional: constrain width like the image */
+    display: inline-block; /* Or flex child depending on layout context */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.gld-kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.gld-kpi-title {
+    font-size: 13px;
+    color: #64748b; /* Slate 500 equivalent */
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.gld-kpi-icon {
+    background-color: #fee2e2; /* Red 100 */
+    color: #ef4444; /* Red 500 */
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gld-kpi-icon .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.gld-kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0f172a; /* Slate 900 */
+    margin: 5px 0;
+    line-height: 1.2;
+}
+
+.gld-kpi-trend {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    margin-top: 8px;
+    gap: 4px;
+}
+
+.gld-kpi-trend.positive {
+    color: #22c55e; /* Green 500 */
+}
+
+.gld-kpi-trend .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.gld-kpi-trend .gld-trend-value {
+    font-weight: 600;
+}
+
+.gld-kpi-trend .gld-trend-label {
+    color: #64748b; /* Slate 500 */
+    margin-left: 2px;
+}
+
+/* Chart Card Styles */
+.gld-chart-card {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.gld-chart-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.gld-chart-wrapper {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    min-height: 250px;
+}

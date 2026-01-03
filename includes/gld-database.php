@@ -79,6 +79,36 @@ function gld_create_tables() {
 	dbDelta( $events_sql );
 	dbDelta( $reports_sql );
 	dbDelta( $sessions_sql );
+
+	// Member KPI table
+	$member_kpi_table = GLD_MEMBER_KPI_TABLE;
+	$member_kpi_sql   = "CREATE TABLE IF NOT EXISTS {$member_kpi_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		title varchar(255) NOT NULL,
+		metric_type varchar(50) NOT NULL,
+		filter_by_course varchar(50) NOT NULL DEFAULT 0,
+		include_chart_version varchar(50) NOT NULL DEFAULT 0,
+		created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		PRIMARY KEY  (id)
+	) $charset_collate;";
+	
+	dbDelta( $member_kpi_sql );
+
+	// Member Charts table
+	$member_charts_table = GLD_MEMBER_CHARTS_TABLE;
+	$member_charts_sql   = "CREATE TABLE IF NOT EXISTS {$member_charts_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		title varchar(255) NOT NULL,
+		metric_type varchar(50) NOT NULL,
+		filter_by_product varchar(50) NOT NULL DEFAULT 0,
+		chart_height int(11) NOT NULL DEFAULT 300,
+		created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		PRIMARY KEY  (id)
+	) $charset_collate;";
+	
+	dbDelta( $member_charts_sql );
 	
 	// Update database version
 	update_option( 'gld_db_version', GLD_VERSION );

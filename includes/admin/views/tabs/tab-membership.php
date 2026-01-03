@@ -42,34 +42,76 @@ if ( ! defined( 'WPINC' ) ) {
 
 			<div class="gld-form-grid">
 				<div class="gld-form-group">
-					<label for="metric-type"><?php esc_html_e( 'Metric Type', 'gamplify-gld' ); ?> *</label>
-					<select id="metric-type" class="gld-select">
-						<option value=""><?php esc_html_e( 'Select metric type', 'gamplify-gld' ); ?></option>
-						<option value="total_members"><?php esc_html_e( 'Total Members', 'gamplify-gld' ); ?></option>
-						<option value="active_members"><?php esc_html_e( 'Active Members', 'gamplify-gld' ); ?></option>
-						<option value="new_members"><?php esc_html_e( 'New Members (This Month)', 'gamplify-gld' ); ?></option>
-						<option value="member_growth"><?php esc_html_e( 'Member Growth Rate', 'gamplify-gld' ); ?></option>
-						<option value="engagement_score"><?php esc_html_e( 'Engagement Score', 'gamplify-gld' ); ?></option>
+					<label for="kpi-metric-type"><?php esc_html_e( 'Metric Type', 'gamplify-gld' ); ?> *</label>
+					<select id="kpi-metric-type" class="gld-select">
+						<option value=""><?php esc_html_e( 'Select metric type', 'gamplify-gld' ); ?></option>						
+						<?php
+						if ( class_exists( 'WooCommerce' ) ) {
+							$args = array(
+								'type'   => array( 'subscription', 'variable-subscription' ),
+								'limit'  => -1,
+								'status' => 'publish',
+							);
+							
+							// Check if wc_get_products exists, otherwise use WP_Query
+							if ( function_exists( 'wc_get_products' ) ) {
+								$products = wc_get_products( $args );
+								if ( ! empty( $products ) ) {
+									// echo '<optgroup label="' . esc_attr__( 'Subscription Products', 'gamplify-gld' ) . '">';
+									foreach ( $products as $product ) {
+										echo '<option value="' . esc_attr( $product->get_id() ) . '">' . esc_html( $product->get_name() ) . '</option>';
+									}
+									// echo '</optgroup>';
+								}
+							}
+						}
+						?>
 					</select>
 				</div>
 
 				<div class="gld-form-group">
-					<label for="filter-course"><?php esc_html_e( 'Filter by Course', 'gamplify-gld' ); ?></label>
-					<select id="filter-course" class="gld-select">
+					<label for="kpi-filter-course"><?php esc_html_e( 'Filter by Course', 'gamplify-gld' ); ?></label>
+					<select id="kpi-filter-course" class="gld-select" multiple>
 						<option value=""><?php esc_html_e( 'Select filter by course', 'gamplify-gld' ); ?></option>
+						<option value=""><?php esc_html_e( 'No Courses', 'gamplify-gld' ); ?></option>
 						<option value="all"><?php esc_html_e( 'All Courses', 'gamplify-gld' ); ?></option>
-						<!-- Dynamic courses will be loaded here -->
+						<?php
+						// Try to detect common LMS course post types
+						$lms_post_types = array( 'sfwd-courses' );
+						$found_post_type = false;
+						
+						foreach ( $lms_post_types as $pt ) {
+							if ( post_type_exists( $pt ) ) {
+								$found_post_type = $pt;
+								break;
+							}
+						}
+						
+						if ( $found_post_type ) {
+							$courses = get_posts( array(
+								'post_type'      => $found_post_type,
+								'posts_per_page' => -1,
+								'post_status'    => 'publish',
+								'orderby'        => 'title',
+								'order'          => 'ASC',
+							) );
+							
+							if ( ! empty( $courses ) ) {
+								foreach ( $courses as $course ) {
+									echo '<option value="' . esc_attr( $course->ID ) . '">' . esc_html( $course->post_title ) . '</option>';
+								}
+							}
+						}
+						?>
 					</select>
 				</div>
 
 				<div class="gld-form-group">
-					<label for="chart-version"><?php esc_html_e( 'Include Chart Version', 'gamplify-gld' ); ?></label>
-					<select id="chart-version" class="gld-select">
+					<label for="kpi-chart-version"><?php esc_html_e( 'Include Chart Version', 'gamplify-gld' ); ?></label>
+					<select id="kpi-chart-version" class="gld-select">
 						<option value=""><?php esc_html_e( 'Select include chart version', 'gamplify-gld' ); ?></option>
-						<option value="no_chart"><?php esc_html_e( 'No Chart', 'gamplify-gld' ); ?></option>
-						<option value="line_chart"><?php esc_html_e( 'Line Chart', 'gamplify-gld' ); ?></option>
-						<option value="bar_chart"><?php esc_html_e( 'Bar Chart', 'gamplify-gld' ); ?></option>
-						<option value="pie_chart"><?php esc_html_e( 'Pie Chart', 'gamplify-gld' ); ?></option>
+						<option value="no"><?php esc_html_e( 'No', 'gamplify-gld' ); ?></option>
+						<option value="yes"><?php esc_html_e( 'Yes', 'gamplify-gld' ); ?></option>
 					</select>
 				</div>
 			</div>
@@ -83,7 +125,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 		<!-- Generated Shortcodes Table -->
 		<div class="gld-section">
-			<h3 class="gld-section-title"><?php esc_html_e( 'Generated Shortcodes', 'gamplify-gld' ); ?></h3>
+			<h3 class="gld-section-title"><?php esc_html_e( 'Generated Metric Shortcodes', 'gamplify-gld' ); ?></h3>
 			
 			<table class="wp-list-table widefat fixed striped gld-shortcodes-table">
 				<thead>
@@ -104,6 +146,7 @@ if ( ! defined( 'WPINC' ) ) {
 					</tr>
 				</tbody>
 			</table>
+			<div id="gld-kpi-pagination" class="gld-pagination" style="margin-top: 15px; text-align: right;"></div>
 		</div>
 	</div>
 
@@ -115,31 +158,82 @@ if ( ! defined( 'WPINC' ) ) {
 
 			<div class="gld-form-grid">
 				<div class="gld-form-group">
-					<label for="chart-type"><?php esc_html_e( 'Chart Type', 'gamplify-gld' ); ?> *</label>
-					<select id="chart-type" class="gld-select">
+					<label for="chart-config-type"><?php esc_html_e( 'Chart Type', 'gamplify-gld' ); ?> *</label>
+					<select id="chart-config-type" class="gld-select">
 						<option value=""><?php esc_html_e( 'Select chart type', 'gamplify-gld' ); ?></option>
-						<option value="growth_trend"><?php esc_html_e( 'Growth Trend', 'gamplify-gld' ); ?></option>
-						<option value="activity_heatmap"><?php esc_html_e( 'Activity Heatmap', 'gamplify-gld' ); ?></option>
-						<option value="demographics"><?php esc_html_e( 'Demographics Breakdown', 'gamplify-gld' ); ?></option>
+						<option value="subscription_distribution_pie_chart"><?php esc_html_e( 'Subscription Distribution (Pie Chart)', 'gamplify-gld' ); ?></option>
+						<option value="retention_analysis_pie_chart"><?php esc_html_e( 'Retention Analysis (Pie Chart)', 'gamplify-gld' ); ?></option>
+						<option value="user_growth_over_time_line_chart"><?php esc_html_e( 'User Growth Over Time (Line Chart)', 'gamplify-gld' ); ?></option>
+						<option value="churn_rate_over_time_line_chart"><?php esc_html_e( 'Churn Rate Over Time (Line Chart)', 'gamplify-gld' ); ?></option>
+						<option value="dau_wau_mau_trends_area_chart"><?php esc_html_e( 'DAU/WAU/MAU Trends (Area Chart)', 'gamplify-gld' ); ?></option>
 					</select>
 				</div>
 
 				<div class="gld-form-group">
-					<label for="time-period"><?php esc_html_e( 'Time Period', 'gamplify-gld' ); ?></label>
-					<select id="time-period" class="gld-select">
-						<option value="7days"><?php esc_html_e( 'Last 7 Days', 'gamplify-gld' ); ?></option>
-						<option value="30days"><?php esc_html_e( 'Last 30 Days', 'gamplify-gld' ); ?></option>
-						<option value="90days"><?php esc_html_e( 'Last 90 Days', 'gamplify-gld' ); ?></option>
-						<option value="1year"><?php esc_html_e( 'Last Year', 'gamplify-gld' ); ?></option>
+					<label for="chart-config-product"><?php esc_html_e( 'Filter by Product', 'gamplify-gld' ); ?></label>
+					<select id="chart-config-product" class="gld-select" multiple>
+						<option value=""><?php esc_html_e( 'Select filter by product', 'gamplify-gld' ); ?></option>
+						<option value="all"><?php esc_html_e( 'All Products', 'gamplify-gld' ); ?></option>
+						<?php
+						if ( class_exists( 'WooCommerce' ) ) {
+							$args = array(
+								'type'   => array( 'subscription', 'variable-subscription' ),
+								'limit'  => -1,
+								'status' => 'publish',
+							);
+							
+							if ( function_exists( 'wc_get_products' ) ) {
+								$products = wc_get_products( $args );
+								if ( ! empty( $products ) ) {
+									foreach ( $products as $product ) {
+										echo '<option value="' . esc_attr( $product->get_id() ) . '">' . esc_html( $product->get_name() ) . '</option>';
+									}
+								}
+							}
+						}
+						?>
 					</select>
 				</div>
+
+				<div class="gld-form-group">
+					<label for="chart-config-height"><?php esc_html_e( 'Chart Height (px)', 'gamplify-gld' ); ?></label>
+					<input type="number" id="chart-config-height" class="chart-height gld-input" min="1" max="500" value="300">
+				</div>
+
 			</div>
 
 			<div class="gld-action-row">
-				<button class="button button-primary button-large gld-generate-btn">
+				<button class="button button-primary button-large gld-generate-btn" id="generate-chart-shortcode">
 					<?php esc_html_e( 'Generate Chart Shortcode', 'gamplify-gld' ); ?>
 				</button>
 			</div>
+		</div>
+
+		<!-- Generated Chart Shortcodes Table -->
+		<div class="gld-section">
+			<h3 class="gld-section-title"><?php esc_html_e( 'Generated Chart Shortcodes', 'gamplify-gld' ); ?></h3>
+			
+			<table class="wp-list-table widefat fixed striped gld-shortcodes-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Type', 'gamplify-gld' ); ?></th>
+						<th><?php esc_html_e( 'Title', 'gamplify-gld' ); ?></th>
+						<th><?php esc_html_e( 'Product', 'gamplify-gld' ); ?></th>
+						<th><?php esc_html_e( 'Chart Height', 'gamplify-gld' ); ?></th>
+						<th><?php esc_html_e( 'Shortcode', 'gamplify-gld' ); ?></th>
+						<th><?php esc_html_e( 'Created', 'gamplify-gld' ); ?></th>
+						<th><?php esc_html_e( 'Actions', 'gamplify-gld' ); ?></th>
+					</tr>
+				</thead>
+				<tbody id="chart-shortcodes-list">
+					<tr class="no-items">
+						<td colspan="7" class="gld-no-items">
+							<?php esc_html_e( 'No chart shortcodes generated yet.', 'gamplify-gld' ); ?>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div id="gld-chart-pagination" class="gld-pagination" style="margin-top: 15px; text-align: right;"></div>
 		</div>
 	</div>
 </div>
