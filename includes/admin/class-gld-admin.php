@@ -44,6 +44,52 @@ class GLD_Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_notices', array( $this, 'check_dependencies' ) );
+	}
+	
+	/**
+	 * Check for required dependencies and display notices
+	 *
+	 * @return void
+	 */
+	public function check_dependencies() {
+		// Ensure is_plugin_active is available
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		}
+
+		$missing = array();
+
+		// Check WooCommerce
+		if ( ! is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+			$missing[] = 'WooCommerce';
+		}
+
+		// Check WooCommerce Subscriptions
+		if ( ! is_plugin_active( 'woocommerce-subscriptions/woocommerce-subscriptions.php' ) ) {
+			$missing[] = 'WooCommerce Subscriptions';
+		}
+
+		// Check LearnDash LMS
+		if ( ! is_plugin_active( 'sfwd-lms/sfwd_lms.php' ) ) {
+			$missing[] = 'LearnDash LMS';
+		}
+
+		if ( ! empty( $missing ) ) {
+			?>
+			<div class="notice notice-error">
+				<p>
+					<?php 
+					printf( 
+						/* translators: %s: List of missing plugins */
+						esc_html__( 'Gamplify GLD requires the following plugins to be active: %s.', 'gamplify-gld' ), 
+						'<strong>' . implode( ', ', array_map( 'esc_html', $missing ) ) . '</strong>' 
+					); 
+					?>
+				</p>
+			</div>
+			<?php
+		}
 	}
 	
 	/**

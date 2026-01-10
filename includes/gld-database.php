@@ -109,6 +109,37 @@ function gld_create_tables() {
 	) $charset_collate;";
 	
 	dbDelta( $member_charts_sql );
+
+	// Learning KPI table
+	$learning_kpi_table = GLD_LEARNING_KPI_TABLE;
+	$learning_kpi_sql   = "CREATE TABLE IF NOT EXISTS {$learning_kpi_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		title varchar(255) NOT NULL,
+		metric_type varchar(50) NOT NULL,
+		filter_by_course longtext NOT NULL,
+		include_chart_version varchar(50) NOT NULL DEFAULT 'no',
+		created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		PRIMARY KEY  (id)
+	) $charset_collate;";
+	
+	dbDelta( $learning_kpi_sql );
+
+	// Learning Data Table table
+	$learning_data_table = GLD_LEARNING_DATA_TABLE;
+	$learning_data_sql   = "CREATE TABLE IF NOT EXISTS {$learning_data_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		title varchar(255) NOT NULL,
+		table_type varchar(50) NOT NULL,
+		filter_by_course longtext NOT NULL,
+		rows_to_display int(11) NOT NULL DEFAULT 10,
+		sort_by varchar(50) NOT NULL DEFAULT 'date',
+		created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		PRIMARY KEY  (id)
+	) $charset_collate;";
+	
+	dbDelta( $learning_data_sql );
 	
 	// Update database version
 	update_option( 'gld_db_version', GLD_VERSION );

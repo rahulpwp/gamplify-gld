@@ -42,6 +42,16 @@ class GLD_Admin_Ajax {
 		add_action( 'wp_ajax_gld_save_chart', array( $this, 'save_chart' ) );
 		add_action( 'wp_ajax_gld_get_charts', array( $this, 'get_charts' ) );
 		add_action( 'wp_ajax_gld_delete_chart', array( $this, 'delete_chart' ) );
+
+		// Learning module handlers
+		add_action( 'wp_ajax_gld_save_learning_kpi', array( $this, 'save_learning_kpi' ) );
+		add_action( 'wp_ajax_gld_get_learning_kpis', array( $this, 'get_learning_kpis' ) );
+		add_action( 'wp_ajax_gld_get_learning_kpi', array( $this, 'get_learning_kpi' ) );
+		add_action( 'wp_ajax_gld_delete_learning_kpi', array( $this, 'delete_learning_kpi' ) );
+		add_action( 'wp_ajax_gld_save_learning_data_table', array( $this, 'save_learning_data_table' ) );
+		add_action( 'wp_ajax_gld_get_learning_data_tables', array( $this, 'get_learning_data_tables' ) );
+		add_action( 'wp_ajax_gld_get_learning_data_table', array( $this, 'get_learning_data_table' ) );
+		add_action( 'wp_ajax_gld_delete_learning_data_table', array( $this, 'delete_learning_data_table' ) );
 	}
 	
 	/**
@@ -556,6 +566,247 @@ class GLD_Admin_Ajax {
 		} else {
 			wp_send_json_error( array( 'message' => __( 'Failed to delete Chart shortcode', 'gamplify-gld' ) ) );
 		}
+	}
+
+	/**
+	 * Save Learning KPI
+	 *
+	 * @return void
+	 */
+	public function save_learning_kpi() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		$metric_type = isset( $_POST['metric_type'] ) ? sanitize_text_field( $_POST['metric_type'] ) : '';
+		$filter_by_course = isset( $_POST['filter_by_course'] ) ? sanitize_text_field( $_POST['filter_by_course'] ) : '';
+		$include_chart_version = isset( $_POST['include_chart'] ) ? sanitize_text_field( $_POST['include_chart'] ) : 'no';
+		$title = isset( $_POST['title'] ) ? sanitize_text_field( $_POST['title'] ) : '';
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+
+		if ( empty( $metric_type ) ) wp_send_json_error( array( 'message' => __( 'Metric type is required', 'gamplify-gld' ) ) );
+
+		global $wpdb;
+		$data = array(
+			'title'                 => $title ?: ucfirst( str_replace( '_', ' ', $metric_type ) ),
+			'metric_type'           => $metric_type,
+			'filter_by_course'      => $filter_by_course,
+			'include_chart_version' => $include_chart_version,
+		);
+
+		if ( $id ) {
+			$result = $wpdb->update( GLD_LEARNING_KPI_TABLE, $data, array( 'id' => $id ) );
+			if ( $result !== false ) {
+				wp_send_json_success( array( 'message' => __( 'Learning KPI updated successfully', 'gamplify-gld' ), 'id' => $id ) );
+			} else {
+				wp_send_json_error( array( 'message' => __( 'Failed to update Learning KPI', 'gamplify-gld' ) ) );
+			}
+		} else {
+			$result = $wpdb->insert( GLD_LEARNING_KPI_TABLE, $data );
+			if ( $result ) {
+				wp_send_json_success( array( 'message' => __( 'Learning KPI saved successfully', 'gamplify-gld' ), 'id' => $wpdb->insert_id ) );
+			} else {
+				wp_send_json_error( array( 'message' => __( 'Failed to save Learning KPI', 'gamplify-gld' ) ) );
+			}
+		}
+	}
+
+	/**
+	 * Get single Learning KPI
+	 *
+	 * @return void
+	 */
+	public function get_learning_kpi() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+		if ( ! $id ) wp_send_json_error( array( 'message' => __( 'Invalid ID', 'gamplify-gld' ) ) );
+
+		global $wpdb;
+		$kpi = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . GLD_LEARNING_KPI_TABLE . " WHERE id = %d", $id ) );
+
+		if ( $kpi ) {
+			wp_send_json_success( $kpi );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'KPI not found', 'gamplify-gld' ) ) );
+		}
+	}
+
+	/**
+	 * Get Learning KPIs
+	 *
+	 * @return void
+	 */
+	public function get_learning_kpis() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		global $wpdb;
+		$page = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+		$limit = 5;
+		$offset = ( $page - 1 ) * $limit;
+
+		$items = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM " . GLD_LEARNING_KPI_TABLE . " ORDER BY created DESC LIMIT %d OFFSET %d", $limit, $offset ) );
+		
+		if ( ! empty( $items ) ) {
+			foreach ( $items as $item ) {
+				$item->course_display_name = $this->resolve_course_names( $item->filter_by_course );
+			}
+		}
+
+		$total_items = (int) $wpdb->get_var( "SELECT COUNT(*) FROM " . GLD_LEARNING_KPI_TABLE );
+		$total_pages = ceil( $total_items / $limit );
+
+		wp_send_json_success( array( 'items' => $items, 'pagination' => array( 'current_page' => $page, 'total_pages' => $total_pages, 'total_items' => $total_items ) ) );
+	}
+
+	/**
+	 * Delete Learning KPI
+	 *
+	 * @return void
+	 */
+	public function delete_learning_kpi() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+		global $wpdb;
+		$result = $wpdb->delete( GLD_LEARNING_KPI_TABLE, array( 'id' => $id ) );
+		if ( $result ) {
+			wp_send_json_success( array( 'message' => __( 'Learning KPI deleted successfully', 'gamplify-gld' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to delete Learning KPI', 'gamplify-gld' ) ) );
+		}
+	}
+
+	/**
+	 * Save Learning Data Table
+	 *
+	 * @return void
+	 */
+	public function save_learning_data_table() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		$table_type = isset( $_POST['table_type'] ) ? sanitize_text_field( $_POST['table_type'] ) : '';
+		$filter_by_course = isset( $_POST['filter_by_course'] ) ? sanitize_text_field( $_POST['filter_by_course'] ) : '';
+		$rows_to_display = isset( $_POST['rows'] ) ? absint( $_POST['rows'] ) : 10;
+		$sort_by = isset( $_POST['sort'] ) ? sanitize_text_field( $_POST['sort'] ) : 'date';
+		$title = isset( $_POST['title'] ) ? sanitize_text_field( $_POST['title'] ) : '';
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+
+		if ( empty( $table_type ) ) wp_send_json_error( array( 'message' => __( 'Table type is required', 'gamplify-gld' ) ) );
+
+		global $wpdb;
+		$data = array(
+			'title'           => $title ?: ucfirst( str_replace( '_', ' ', $table_type ) ),
+			'table_type'      => $table_type,
+			'filter_by_course' => $filter_by_course,
+			'rows_to_display' => $rows_to_display,
+			'sort_by'         => $sort_by,
+		);
+
+		if ( $id ) {
+			$result = $wpdb->update( GLD_LEARNING_DATA_TABLE, $data, array( 'id' => $id ) );
+			if ( $result !== false ) {
+				wp_send_json_success( array( 'message' => __( 'Learning Data Table updated successfully', 'gamplify-gld' ), 'id' => $id ) );
+			} else {
+				wp_send_json_error( array( 'message' => __( 'Failed to update Learning Data Table', 'gamplify-gld' ) ) );
+			}
+		} else {
+			$result = $wpdb->insert( GLD_LEARNING_DATA_TABLE, $data );
+			if ( $result ) {
+				wp_send_json_success( array( 'message' => __( 'Learning Data Table saved successfully', 'gamplify-gld' ), 'id' => $wpdb->insert_id ) );
+			} else {
+				wp_send_json_error( array( 'message' => __( 'Failed to save Learning Data Table', 'gamplify-gld' ) ) );
+			}
+		}
+	}
+
+	/**
+	 * Get single Learning Data Table
+	 *
+	 * @return void
+	 */
+	public function get_learning_data_table() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+		if ( ! $id ) wp_send_json_error( array( 'message' => __( 'Invalid ID', 'gamplify-gld' ) ) );
+
+		global $wpdb;
+		$config = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . GLD_LEARNING_DATA_TABLE . " WHERE id = %d", $id ) );
+
+		if ( $config ) {
+			wp_send_json_success( $config );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Data Table configuration not found', 'gamplify-gld' ) ) );
+		}
+	}
+
+	/**
+	 * Get Learning Data Tables
+	 *
+	 * @return void
+	 */
+	public function get_learning_data_tables() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		global $wpdb;
+		$page = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+		$limit = 5;
+		$offset = ( $page - 1 ) * $limit;
+
+		$items = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM " . GLD_LEARNING_DATA_TABLE . " ORDER BY created DESC LIMIT %d OFFSET %d", $limit, $offset ) );
+		
+		if ( ! empty( $items ) ) {
+			foreach ( $items as $item ) {
+				$item->course_display_name = $this->resolve_course_names( $item->filter_by_course );
+			}
+		}
+
+		$total_items = (int) $wpdb->get_var( "SELECT COUNT(*) FROM " . GLD_LEARNING_DATA_TABLE );
+		$total_pages = ceil( $total_items / $limit );
+
+		wp_send_json_success( array( 'items' => $items, 'pagination' => array( 'current_page' => $page, 'total_pages' => $total_pages, 'total_items' => $total_items ) ) );
+	}
+
+	/**
+	 * Delete Learning Data Table
+	 *
+	 * @return void
+	 */
+	public function delete_learning_data_table() {
+		check_ajax_referer( 'gld_admin_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'gamplify-gld' ) ) );
+
+		$id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
+		global $wpdb;
+		$result = $wpdb->delete( GLD_LEARNING_DATA_TABLE, array( 'id' => $id ) );
+		if ( $result ) {
+			wp_send_json_success( array( 'message' => __( 'Learning Data Table deleted successfully', 'gamplify-gld' ) ) );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Failed to delete Learning Data Table', 'gamplify-gld' ) ) );
+		}
+	}
+
+	/**
+	 * Helper to resolve course names
+	 */
+	private function resolve_course_names( $course_ids_str ) {
+		if ( empty( $course_ids_str ) || $course_ids_str === 'all' ) return __( 'All Courses', 'gamplify-gld' );
+		
+		$course_ids = explode( ',', $course_ids_str );
+		$names = array();
+		foreach ( $course_ids as $id ) {
+			if ( is_numeric( $id ) ) {
+				$post = get_post( trim( $id ) );
+				$names[] = $post ? $post->post_title : sprintf( '#%d', $id );
+			}
+		}
+		return ! empty( $names ) ? implode( ', ', $names ) : $course_ids_str;
 	}
 }
 
