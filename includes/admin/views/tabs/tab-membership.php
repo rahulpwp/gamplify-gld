@@ -71,7 +71,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 				<div class="gld-form-group">
 					<label for="kpi-filter-course"><?php esc_html_e( 'Filter by Course', 'gamplify-gld' ); ?></label>
-					<select id="kpi-filter-course" class="gld-select" multiple>
+					<select id="kpi-filter-course" class="gld-select select-2" multiple>
 						<option value=""><?php esc_html_e( 'Select filter by course', 'gamplify-gld' ); ?></option>
 						<option value=""><?php esc_html_e( 'No Courses', 'gamplify-gld' ); ?></option>
 						<option value="all"><?php esc_html_e( 'All Courses', 'gamplify-gld' ); ?></option>

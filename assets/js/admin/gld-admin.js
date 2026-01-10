@@ -8,6 +8,7 @@
         initTabs();
         initSubTabs();
         initShortcodeGenerators();
+        initLearningGenerators();
         
         // Initialize Select2
         if ($.fn.select2) {
@@ -125,7 +126,7 @@
         });
 
         // Other generators can be added here
-        $('.gld-generate-btn').not('#generate-membership-shortcode, #generate-chart-shortcode').on('click', function (e) {
+        $('.gld-generate-btn').not('#generate-membership-shortcode, #generate-chart-shortcode, #generate-learning-kpi-shortcode, #generate-learning-table-shortcode').on('click', function (e) {
             e.preventDefault();
             alert('Shortcode generated! (Demo)');
         });
@@ -135,11 +136,20 @@
             loadMemberKpis(1);
         }
 
-        // Pagination click handler (Specific to KPIs)
+        // Pagination click handlers
         $(document).on('click', '#gld-kpi-pagination .gld-pagination-link', function(e) {
             e.preventDefault();
-            var page = $(this).data('page');
-            loadMemberKpis(page);
+            loadMemberKpis($(this).data('page'));
+        });
+
+        $(document).on('click', '#learning-kpi-pagination .gld-pagination-link', function(e) {
+            e.preventDefault();
+            loadLearningKpis($(this).data('page'));
+        });
+
+        $(document).on('click', '#learning-table-pagination .gld-pagination-link', function(e) {
+            e.preventDefault();
+            loadLearningDataTables($(this).data('page'));
         });
 
         // Copy button click handler
@@ -256,7 +266,7 @@
                         $tbody.append(row);
                     });
 
-                    renderPagination(response.data.pagination);
+                    renderPagination(response.data.pagination, $pagination);
                 }
             }
         });
@@ -265,29 +275,38 @@
     /**
      * Render Pagination
      */
-    function renderPagination(pagination) {
-        var $pagination = $('#gld-kpi-pagination');
-        $pagination.empty();
+    /**
+     * Render Pagination
+     */
+    function renderPagination(pagination, $container) {
+        if (!$container || !$container.length) return;
+        $container.empty();
 
-        if (pagination.total_pages <= 1) {
+        if (!pagination || pagination.total_pages <= 1) {
             return;
         }
 
         var html = '';
-        var current = pagination.current_page;
-        var total = pagination.total_pages;
+        var current = parseInt(pagination.current_page) || 1;
+        var total = parseInt(pagination.total_pages) || 1;
+        var total_items = parseInt(pagination.total_items) || 0;
+
+        // Add info text
+        html += '<span class="gld-pagination-info">Showing page ' + current + ' of ' + total + ' (' + total_items + ' items)</span>';
+        
+        html += '<div class="gld-pagination-buttons">';
 
         // Prev
         if (current > 1) {
-            html += '<a href="#" class="button gld-pagination-link" data-page="' + (current - 1) + '">&laquo; Prev</a> ';
+            html += '<a href="#" class="button gld-pagination-link" data-page="' + (current - 1) + '">&laquo; Prev</a>';
         }
 
         // Page numbers
         for (var i = 1; i <= total; i++) {
             if (i === current) {
-                html += '<span class="button button-primary disabled">' + i + '</span> ';
+                html += '<span class="button disabled current">' + i + '</span>';
             } else {
-                html += '<a href="#" class="button gld-pagination-link" data-page="' + i + '">' + i + '</a> ';
+                html += '<a href="#" class="button gld-pagination-link" data-page="' + i + '">' + i + '</a>';
             }
         }
 
@@ -295,8 +314,10 @@
         if (current < total) {
             html += '<a href="#" class="button gld-pagination-link" data-page="' + (current + 1) + '">Next &raquo;</a>';
         }
+        
+        html += '</div>';
 
-        $pagination.html(html);
+        $container.html(html);
     }
 
     /**
@@ -416,8 +437,7 @@
         // Pagination click for charts
         $(document).on('click', '#gld-chart-pagination .gld-pagination-link', function(e) {
             e.preventDefault();
-            var page = $(this).data('page');
-            loadCharts(page);
+            loadCharts($(this).data('page'));
         });
 
         // Initial load
@@ -482,47 +502,270 @@
                         $tbody.append(row);
                     });
 
-                    renderChartPagination(response.data.pagination);
+                    renderPagination(response.data.pagination, $pagination);
                 }
             }
         });
     }
 
+
+    // --- Learning Functions ---
+
     /**
-     * Render Chart Pagination
+     * Initialize Learning module generators
      */
-    function renderChartPagination(pagination) {
-        var $pagination = $('#gld-chart-pagination');
-        $pagination.empty();
+    function initLearningGenerators() {
+        // Learning KPI Generator
+        $('#generate-learning-kpi-shortcode').on('click', function (e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $container = $btn.closest('.gld-section');
+            
+            var metricType = $container.find('#learning-kpi-metric-type').val();
+            var metricTitle = $container.find('#learning-kpi-metric-type option:selected').text().trim();
+            var courses = $container.find('#learning-kpi-filter-course').val();
+            var chart = $container.find('#learning-kpi-include-chart').val();
 
-        if (pagination.total_pages <= 1) {
-            return;
-        }
+            if (!metricType) { alert('Please select a metric type'); return; }
 
-        var html = '';
-        var current = pagination.current_page;
-        var total = pagination.total_pages;
+            $btn.prop('disabled', true).text('Saving...');
+            $.ajax({
+                url: gld_admin.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'gld_save_learning_kpi',
+                    nonce: gld_admin.nonce,
+                    id: $container.find('#learning-kpi-id').val(),
+                    metric_type: metricType,
+                    filter_by_course: Array.isArray(courses) ? courses.join(',') : courses,
+                    include_chart: chart
+                },
+                success: function (response) {
+                    if (response.success) {
+                        loadLearningKpis(1);
+                        $container.find('#learning-kpi-id').val('');
+                        $btn.text('Generate Shortcode');
+                        alert(response.data.message);
+                    } else {
+                        alert(response.data.message || 'Error occurred');
+                    }
+                },
+                complete: function () { $btn.prop('disabled', false); }
+            });
+        });
 
-        // Prev
-        if (current > 1) {
-            html += '<a href="#" class="button gld-pagination-link" data-page="' + (current - 1) + '">&laquo; Prev</a> ';
-        }
+        // Learning Data Table Generator
+        $('#generate-learning-table-shortcode').on('click', function (e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $container = $btn.closest('.gld-section');
+            
+            var tableType = $container.find('#learning-table-type').val();
+            var tableTitle = $container.find('#learning-table-type option:selected').text().trim();
+            var courses = $container.find('#learning-table-filter-course').val();
+            var rows = $container.find('#learning-table-rows').val();
+            var sort = $container.find('#learning-table-sort').val();
 
-        // Page numbers
-        for (var i = 1; i <= total; i++) {
-            if (i === current) {
-                html += '<span class="button button-primary disabled">' + i + '</span> ';
-            } else {
-                html += '<a href="#" class="button gld-pagination-link" data-page="' + i + '">' + i + '</a> ';
+            if (!tableType) { alert('Please select a table type'); return; }
+
+            $btn.prop('disabled', true).text('Saving...');
+            $.ajax({
+                url: gld_admin.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'gld_save_learning_data_table',
+                    nonce: gld_admin.nonce,
+                    id: $container.find('#learning-table-id').val(),
+                    table_type: tableType,
+                    filter_by_course: Array.isArray(courses) ? courses.join(',') : courses,
+                    rows: rows,
+                    sort: sort
+                },
+                success: function (response) {
+                    if (response.success) {
+                        loadLearningDataTables(1);
+                        $container.find('#learning-table-id').val('');
+                        $btn.text('Generate Shortcode');
+                        alert(response.data.message);
+                    } else {
+                        alert(response.data.message || 'Error occurred');
+                    }
+                },
+                complete: function () { $btn.prop('disabled', false); }
+            });
+        });
+
+        // Edit handlers for learning
+        $(document).on('click', '.edit-learning-kpi-btn', function(e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $container = $('#subtab-learning-kpis');
+            
+            $.ajax({
+                url: gld_admin.ajax_url,
+                type: 'POST',
+                data: { action: 'gld_get_learning_kpi', nonce: gld_admin.nonce, id: $btn.data('id') },
+                success: function(response) {
+                    if (response.success) {
+                        var kpi = response.data;
+                        $container.find('#learning-kpi-id').val(kpi.id);
+                        $container.find('#learning-kpi-metric-type').val(kpi.metric_type);
+                        $container.find('#learning-kpi-include-chart').val(kpi.include_chart_version);
+                        
+                        // Handle Select2 multiple
+                        if (kpi.filter_by_course) {
+                            var courses = kpi.filter_by_course.split(',');
+                            $container.find('#learning-kpi-filter-course').val(courses).trigger('change');
+                        } else {
+                            $container.find('#learning-kpi-filter-course').val(null).trigger('change');
+                        }
+                        
+                        $('#generate-learning-kpi-shortcode').text('Update Shortcode');
+                        $('html, body').animate({ scrollTop: $container.offset().top - 50 }, 500);
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '.edit-learning-table-btn', function(e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $container = $('#subtab-learning-data-tables');
+            
+            $.ajax({
+                url: gld_admin.ajax_url,
+                type: 'POST',
+                data: { action: 'gld_get_learning_data_table', nonce: gld_admin.nonce, id: $btn.data('id') },
+                success: function(response) {
+                    if (response.success) {
+                        var config = response.data;
+                        $container.find('#learning-table-id').val(config.id);
+                        $container.find('#learning-table-type').val(config.table_type);
+                        $container.find('#learning-table-rows').val(config.rows_to_display);
+                        $container.find('#learning-table-sort').val(config.sort_by);
+                        
+                        // Handle Select2 multiple
+                        if (config.filter_by_course) {
+                            var courses = config.filter_by_course.split(',');
+                            $container.find('#learning-table-filter-course').val(courses).trigger('change');
+                        } else {
+                            $container.find('#learning-table-filter-course').val(null).trigger('change');
+                        }
+                        
+                        $('#generate-learning-table-shortcode').text('Update Shortcode');
+                        $('html, body').animate({ scrollTop: $container.offset().top - 50 }, 500);
+                    }
+                }
+            });
+        });
+
+        // Delete handlers for learning
+        $(document).on('click', '.delete-learning-kpi-btn', function(e) {
+            e.preventDefault();
+            if (!confirm('Delete this Learning KPI?')) return;
+            var $btn = $(this);
+            $.ajax({
+                url: gld_admin.ajax_url,
+                type: 'POST',
+                data: { action: 'gld_delete_learning_kpi', nonce: gld_admin.nonce, id: $btn.data('id') },
+                success: function(response) { if (response.success) loadLearningKpis(1); }
+            });
+        });
+
+        $(document).on('click', '.delete-learning-table-btn', function(e) {
+            e.preventDefault();
+            if (!confirm('Delete this Learning Data Table?')) return;
+            var $btn = $(this);
+            $.ajax({
+                url: gld_admin.ajax_url,
+                type: 'POST',
+                data: { action: 'gld_delete_learning_data_table', nonce: gld_admin.nonce, id: $btn.data('id') },
+                success: function(response) { if (response.success) loadLearningDataTables(1); }
+            });
+        });
+
+        // Initial load
+        if ($('#learning-kpi-shortcodes-list').length) loadLearningKpis(1);
+        if ($('#learning-table-shortcodes-list').length) loadLearningDataTables(1);
+    }
+
+    function loadLearningKpis(page) {
+        var $tbody = $('#learning-kpi-shortcodes-list');
+        var $pagination = $('#learning-kpi-pagination');
+        $tbody.css('opacity', '0.5');
+
+        $.ajax({
+            url: gld_admin.ajax_url,
+            type: 'POST',
+            data: { action: 'gld_get_learning_kpis', nonce: gld_admin.nonce, page: page },
+            success: function(response) {
+                $tbody.css('opacity', '1');
+                if (response.success && response.data.items) {
+                    $tbody.empty();
+                    if (response.data.items.length === 0) {
+                        $tbody.html('<tr class="no-items"><td colspan="6" class="gld-no-items">No shortcodes found.</td></tr>');
+                        $pagination.empty();
+                        return;
+                    }
+                    $.each(response.data.items, function(i, item) {
+                        var row = '<tr>' +
+                            '<td>Learning</td>' +
+                            '<td>' + (item.title || 'Untitled') + '</td>' +
+                            '<td>' + item.course_display_name + '</td>' +
+                            '<td><code>[gld_learning_kpi id="' + item.id + '"]</code></td>' +
+                            '<td>' + new Date(item.created).toLocaleDateString() + '</td>' +
+                            '<td>' +
+                                '<button class="button button-small copy-btn" title="Copy Shortcode">Copy</button> ' +
+                                '<button class="button button-small edit-learning-kpi-btn" data-id="' + item.id + '" title="Edit"><span class="dashicons dashicons-edit-page"></span></button> ' +
+                                '<button class="button button-small delete-learning-kpi-btn" data-id="' + item.id + '" title="Delete"><span class="dashicons dashicons-trash"></span></button>' +
+                            '</td>' +
+                            '</tr>';
+                        $tbody.append(row);
+                    });
+                    renderPagination(response.data.pagination, $pagination);
+                }
             }
-        }
+        });
+    }
 
-        // Next
-        if (current < total) {
-            html += '<a href="#" class="button gld-pagination-link" data-page="' + (current + 1) + '">Next &raquo;</a>';
-        }
+    function loadLearningDataTables(page) {
+        var $tbody = $('#learning-table-shortcodes-list');
+        var $pagination = $('#learning-table-pagination');
+        $tbody.css('opacity', '0.5');
 
-        $pagination.html(html);
+        $.ajax({
+            url: gld_admin.ajax_url,
+            type: 'POST',
+            data: { action: 'gld_get_learning_data_tables', nonce: gld_admin.nonce, page: page },
+            success: function(response) {
+                $tbody.css('opacity', '1');
+                if (response.success && response.data.items) {
+                    $tbody.empty();
+                    if (response.data.items.length === 0) {
+                        $tbody.html('<tr class="no-items"><td colspan="7" class="gld-no-items">No shortcodes found.</td></tr>');
+                        $pagination.empty();
+                        return;
+                    }
+                    $.each(response.data.items, function(i, item) {
+                        var row = '<tr>' +
+                            '<td>Learning</td>' +
+                            '<td>' + (item.title || 'Untitled') + '</td>' +
+                            '<td>' + item.course_display_name + '</td>' +
+                            '<td>' + item.rows_to_display + '</td>' +
+                            '<td><code>[gld_learning_table id="' + item.id + '"]</code></td>' +
+                            '<td>' + new Date(item.created).toLocaleDateString() + '</td>' +
+                            '<td>' +
+                                '<button class="button button-small copy-btn" title="Copy Shortcode">Copy</button> ' +
+                                '<button class="button button-small edit-learning-table-btn" data-id="' + item.id + '" title="Edit"><span class="dashicons dashicons-edit-page"></span></button> ' +
+                                '<button class="button button-small delete-learning-table-btn" data-id="' + item.id + '" title="Delete"><span class="dashicons dashicons-trash"></span></button>' +
+                            '</td>' +
+                            '</tr>';
+                        $tbody.append(row);
+                    });
+                    renderPagination(response.data.pagination, $pagination);
+                }
+            }
+        });
     }
 
     // Call initCharts

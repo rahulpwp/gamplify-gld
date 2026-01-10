@@ -85,6 +85,14 @@ class GLD_Public {
 				'nonce'    => wp_create_nonce( 'gld_public_nonce' ),
 			)
 		);
+
+		wp_enqueue_script(
+			'gld-public',
+			GLD_URL . 'assets/js/public/gld-public.js',
+			array( 'jquery' ),
+			$this->version,
+			true
+		);
 	}
 	
 	/**

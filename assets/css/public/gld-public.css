@@ -77,82 +77,85 @@
 /* KPI Card Styles */
 .gld-kpi-card {
     background: #fff;
-    border: 1px solid #e1e4e8; /* Faint border */
+    border: 1px solid #f1f5f9; /* Slate 100 */
     border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle shadow */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    max-width: 300px; /* Optional: constrain width like the image */
-    display: inline-block; /* Or flex child depending on layout context */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 350px;
     width: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gld-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 }
 
 .gld-kpi-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
+    align-items: center;
+    margin-bottom: 24px;
 }
 
 .gld-kpi-title {
-    font-size: 13px;
-    color: #64748b; /* Slate 500 equivalent */
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-size: 14px;
+    color: #475569; /* Slate 600 */
+    font-weight: 700;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
 }
 
 .gld-kpi-icon {
-    background-color: #fee2e2; /* Red 100 */
+    background-color: #fee2e2; /* Red 100 - Default to reddish as per image */
     color: #ef4444; /* Red 500 */
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .gld-kpi-icon .dashicons {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
 }
 
 .gld-kpi-value {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 40px;
+    font-weight: 800;
     color: #0f172a; /* Slate 900 */
-    margin: 5px 0;
-    line-height: 1.2;
+    margin: 0;
+    line-height: 1;
+}
+
+.gld-kpi-footer {
+    margin-top: 12px;
+}
+
+.gld-kpi-label {
+    font-size: 14px;
+    color: #64748b; /* Slate 500 */
+    font-weight: 500;
+}
+
+/* Specific type colors if needed */
+.learning-kpi.type-quiz .gld-kpi-icon {
+    background-color: #fef2f2;
 }
 
 .gld-kpi-trend {
     display: flex;
     align-items: center;
     font-size: 14px;
-    margin-top: 8px;
+    margin-top: 12px;
     gap: 4px;
-}
-
-.gld-kpi-trend.positive {
-    color: #22c55e; /* Green 500 */
-}
-
-.gld-kpi-trend .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-}
-
-.gld-kpi-trend .gld-trend-value {
-    font-weight: 600;
-}
-
-.gld-kpi-trend .gld-trend-label {
-    color: #64748b; /* Slate 500 */
-    margin-left: 2px;
 }
 
 /* Chart Card Styles */
@@ -182,4 +185,381 @@
     position: relative;
     width: 100%;
     min-height: 250px;
+}
+
+/* Course Completion Summary Table */
+.gld-table-container.summary-table-layout {
+    background: #fff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    font-family: Inter, -apple-system, sans-serif;
+    margin: 20px 0;
+}
+
+.gld-table-header {
+    margin-bottom: 24px;
+}
+
+.gld-table-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.gld-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.gld-summary-table th {
+    padding: 12px 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    border-bottom: 1px solid #f1f5f9;
+    font-weight: 600;
+}
+
+.gld-summary-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #475569;
+}
+
+.gld-summary-table tr:last-child td {
+    border-bottom: none;
+}
+
+.gld-summary-table tr strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.gld-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.pill-pink {
+    background-color: #fce7f3;
+    color: #db2777;
+}
+
+.gld-score-text {
+    color: #10b981;
+    font-weight: 700;
+}
+
+.gld-view-users-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+
+.gld-view-users-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.gld-view-users-btn .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Pagination */
+.gld-table-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.gld-page-link {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gld-page-link:hover {
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.gld-page-link.active {
+    background-color: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+}
+
+/* Modal */
+.gld-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.gld-modal-content {
+    background: #fff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+    animation: gldModalFadeIn 0.3s ease-out;
+}
+
+@keyframes gldModalFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.gld-modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gld-modal-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.gld-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.gld-modal-body {
+    padding: 20px;
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.gld-modal-user-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.gld-modal-user-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gld-modal-user-list li:last-child {
+    border-bottom: none;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.user-status {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.user-status.completed {
+    color: #10b981;
+}
+
+.user-status.in-progress {
+    color: #64748b;
+}
+
+.gld-hidden {
+    display: none !important;
+}
+
+.spin {
+    animation: gld-spin 1s infinite linear;
+    display: inline-block;
+}
+
+@keyframes gld-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Modal Drilldown Tabs */
+.gld-modal-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+.gld-tab-btn {
+    border: none;
+    background: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gld-tab-btn.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.gld-tab-content {
+    display: none;
+}
+
+.gld-tab-content.active {
+    display: block;
+    animation: gldFadeIn 0.3s ease-out;
+}
+
+@keyframes gldFadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Progress Tab Styles */
+.gld-progress-item {
+    margin-bottom: 20px;
+}
+
+.gld-progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.gld-progress-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.gld-progress-percent {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.gld-progress-bar-wrapper {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gld-progress-bar-fill {
+    height: 100%;
+    background: #ef4444; /* Match red from image */
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+/* Assessment Tab Styles */
+.gld-assessment-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.gld-assessment-title {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14px;
+}
+
+.gld-assessment-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.gld-assessment-score {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.gld-status-label {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.gld-status-label.status-passed {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.gld-status-label.status-failed {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.gld-no-data {
+    color: #94a3b8;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
 }

@@ -1,0 +1,1 @@
+Columns: activity_id, user_id, post_id, course_id, activity_type, activity_status, activity_started, activity_completed, activity_updated

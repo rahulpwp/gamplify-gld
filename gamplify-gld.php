@@ -44,6 +44,8 @@ define( 'GLD_REPORTS_TABLE', $wpdb->prefix . 'gld_reports' );
 define( 'GLD_SESSIONS_TABLE', $wpdb->prefix . 'gld_sessions' );
 define( 'GLD_MEMBER_KPI_TABLE', $wpdb->prefix . 'gld_member_kpi' );
 define( 'GLD_MEMBER_CHARTS_TABLE', $wpdb->prefix . 'gld_member_charts' );
+define( 'GLD_LEARNING_KPI_TABLE', $wpdb->prefix . 'gld_learning_kpi' );
+define( 'GLD_LEARNING_DATA_TABLE', $wpdb->prefix . 'gld_learning_data_table' );
 
 /**
  * Plugin activation handler
@@ -137,10 +139,13 @@ foreach ( $public_files as $file ) {
 require_once GLD_DIR . '/includes/gld-shortcodes.php';
 require_once GLD_DIR . '/includes/public/shortcodes/class-gld-membership-shortcode.php';
 require_once GLD_DIR . '/includes/public/shortcodes/class-gld-chart-shortcode.php';
+require_once GLD_DIR . '/includes/public/shortcodes/class-gld-learning-shortcode.php';
 
 // Initialize Membership Shortcode
 new GLD_Membership_Shortcode();
 new GLD_Chart_Shortcode();
+new GLD_Learning_Shortcode();
+new GLD_Public_Ajax();
 
 /**
  * Initialize plugin
